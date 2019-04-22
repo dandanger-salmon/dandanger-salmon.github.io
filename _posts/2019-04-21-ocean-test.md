@@ -1,9 +1,17 @@
 ---
-layout: post
+layout:     post
+title:      ocean test
+subtitle:   损失问题
+date:       2019-04-21
+author:     BY
+header-img: img/post-bg-swift2.jpg
+catalog: true
 comments: true
-categories: ocean
+tags:
+    - ocean
+    - NWP
+    - 动力
 ---
-
 
 <head>
     <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
