@@ -4,7 +4,7 @@ SEOTitle: 张赟程博客 | ZhangYuncheng Blog
 header-img: img/post-bg-desk.jpg
 email: zhangyc@typhoon.org.cn
 description: "Every failure is leading towards success."
-keyword: "BY, BY Blog, 柏荧的博客, qiubaiying, 邱柏荧, iOS, Apple, iPhone"
+#keyword: "BY, BY Blog, 柏荧的博客, qiubaiying, 邱柏荧, iOS, Apple, iPhone"
 url: "http://dandanger-salmon.github.io"          # your host, for absolute URL
 baseurl: ""      # for example, '/blog' if your blog hosted on 'host/blog'
 github_repo: "https://github.com/dandanger-salmon/dandanger-salmon.github.io" # you code repository
