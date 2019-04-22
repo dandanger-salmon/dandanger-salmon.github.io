@@ -1,16 +1,16 @@
 ---
 layout:     post
-title:      ocean test
-subtitle:   损失问题
+title:      decay problem
+subtitle:   dacay problem
 date:       2019-04-21
-author:     BY
-header-img: img/post-bg-swift2.jpg
+author:     ZYC
+header-img: img/output_9_0.png
 catalog: true
 comments: true
 tags:
     - ocean
     - NWP
-    - 动力
+
 ---
 
 <head>
@@ -26,33 +26,32 @@ tags:
 </head>
 
 
-# 海洋模式学习初级阶段：损失问题
-#### 整合J. Kaempf的Fortran和Scilab代码
+# Ocean Modelling for Beginners:decay problem
 
 ## 1 显示时间导数向前迭代 explicit scheme
 
-离散方程为:  <br/> 
-$$\frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n}$$ <br/> 
-调整为: <br/> 
-$$ c^{n+1}=(1-\triangle t \cdot \kappa)c^{n} $$   <br/> 
-为了保证数值解稳定，需要满足条件： <br/> 
-$$ \triangle t < \frac{1}{\kappa} $$ <br/> 
+离散方程为:  <br/>
+$$\frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n}$$ <br/>
+调整为: <br/>
+$$ c^{n+1}=(1-\triangle t \cdot \kappa)c^{n} $$   <br/>
+为了保证数值解稳定，需要满足条件： <br/>
+$$ \triangle t < \frac{1}{\kappa} $$ <br/>
 
 ## 2 隐式时间导数向前迭代 implicit scheme
 
-离散方程为： <br/> 
-$$ \frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n+1} $$ <br/> 
-调整为： <br/> 
-$$ c^{n+1}=(1+\triangle t \cdot \kappa)c^{n} $$ <br/> 
+离散方程为： <br/>
+$$ \frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n+1} $$ <br/>
+调整为： <br/>
+$$ c^{n+1}=(1+\triangle t \cdot \kappa)c^{n} $$ <br/>
 此时，数值解稳定。
 
 ## 3 混合形式 hybrid scheme
 
-离散方程为： <br/> 
-$$ \frac{c^{n+1}-c^{n}}{\triangle t}=-\alpha \cdot \kappa \cdot c^{n+1}-(1-\alpha )\cdot \kappa \cdot c^{n} $$ <br/> 
-调整为： <br/> 
-$$ c^{n+1}=\frac{1-(1- \alpha) \cdot \triangle t \cdot \kappa}{1+\alpha \cdot \triangle t \cdot \kappa}c^{n} $$ <br/> 
-当 $\alpha=1$ 时是隐式； <br/> <br/> 当 $\alpha=0$ 时是显示； <br/><br/> 当 $\alpha=0.5$ 时是半隐式。 <br/><br/> 
+离散方程为： <br/>
+$$ \frac{c^{n+1}-c^{n}}{\triangle t}=-\alpha \cdot \kappa \cdot c^{n+1}-(1-\alpha )\cdot \kappa \cdot c^{n} $$ <br/>
+调整为： <br/>
+$$ c^{n+1}=\frac{1-(1- \alpha) \cdot \triangle t \cdot \kappa}{1+\alpha \cdot \triangle t \cdot \kappa}c^{n} $$ <br/>
+当 $\alpha=1$ 时是隐式； <br/> <br/> 当 $\alpha=0$ 时是显示； <br/><br/> 当 $\alpha=0.5$ 时是半隐式。 <br/><br/>
 
 
 ```python
@@ -368,4 +367,3 @@ plt.show()
 
 
 ![png](output_9_0.png)
-
