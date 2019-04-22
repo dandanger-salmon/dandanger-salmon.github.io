@@ -10,7 +10,7 @@ comments: true
 tags:
     - ocean
     - NWP
-
+    - test
 ---
 
 <head>
@@ -366,4 +366,4 @@ plt.show()
 ```
 
 
-![png](https://github.com/dandanger-salmon/dandanger-salmon.github.io/blob/master/img/output_9_0.png)
+![png](img/output_9_0.png)
