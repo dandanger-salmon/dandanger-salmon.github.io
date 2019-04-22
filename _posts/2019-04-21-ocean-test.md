@@ -32,7 +32,7 @@ tags:
 ## 1 显示时间导数向前迭代 explicit scheme
 
 离散方程为:  <br/> 
-$$ \frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n} $$
+$$\frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n}$$ <br/> 
 调整为: <br/> 
 $$ c^{n+1}=(1-\triangle t \cdot \kappa)c^{n} $$   <br/> 
 为了保证数值解稳定，需要满足条件： <br/> 
