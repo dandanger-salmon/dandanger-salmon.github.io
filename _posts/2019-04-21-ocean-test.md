@@ -366,4 +366,4 @@ plt.show()
 ```
 
 
-![png](blob/master/img/output_9_0.png)
+![image](_posts/output_9_0.png)
