@@ -366,4 +366,4 @@ plt.show()
 ```
 
 
-![png](dandanger-salmon.github.io/blob/master/img/output_9_0.png)
+![png](blob/master/img/output_9_0.png)
