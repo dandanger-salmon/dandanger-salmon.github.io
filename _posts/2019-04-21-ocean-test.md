@@ -4,7 +4,6 @@ title:      decay problem
 subtitle:   dacay problem
 date:       2019-04-21
 author:     ZYC
-header-img: img/post-bg-miui6.jpg
 catalog: true
 comments: true
 tags:
