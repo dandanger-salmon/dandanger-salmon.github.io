@@ -28,30 +28,30 @@ tags:
 
 ## 1 显示时间导数向前迭代 explicit scheme
 
-离散方程为:  <br/>
-$$\frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n}$$ <br/>
-调整为: <br/>
-$$ c^{n+1}=(1-\triangle t \cdot \kappa)c^{n} $$   <br/>
-为了保证数值解稳定，需要满足条件： <br/>
-$$ \triangle t < \frac{1}{\kappa} $$ <br/>
+离散方程为:  <br/><br/>
+$$\frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n}$$ <br/><br/>
+调整为: <br/><br/>
+$$ c^{n+1}=(1-\triangle t \cdot \kappa)c^{n} $$   <br/><br/>
+为了保证数值解稳定，需要满足条件： <br/><br/>
+$$ \triangle t < \frac{1}{\kappa} $$ <br/><br/>
 
 ## 2 隐式时间导数向前迭代 implicit scheme
 
-离散方程为： <br/>
-$$ \frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n+1} $$ <br/>
-调整为： <br/>
-$$ c^{n+1}=(1+\triangle t \cdot \kappa)c^{n} $$ <br/>
+离散方程为： <br/><br/>
+$$ \frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n+1} $$ <br/><br/>
+调整为： <br/><br/>
+$$ c^{n+1}=(1+\triangle t \cdot \kappa)c^{n} $$ <br/><br/>
 此时，数值解稳定。
 
 ## 3 混合形式 hybrid scheme
 
-离散方程为： <br/>
-$$ \frac{c^{n+1}-c^{n}}{\triangle t}=-\alpha \cdot \kappa \cdot c^{n+1}-(1-\alpha )\cdot \kappa \cdot c^{n} $$ <br/>
-调整为： <br/>
-$$ c^{n+1}=\frac{1-(1- \alpha) \cdot \triangle t \cdot \kappa}{1+\alpha \cdot \triangle t \cdot \kappa}c^{n} $$ <br/>
-当 $\alpha=1$ 时是隐式； <br/> <br/> 当 $\alpha=0$ 时是显示； <br/><br/> 当 $\alpha=0.5$ 时是半隐式。 <br/><br/>
+离散方程为： <br/><br/>
+$$ \frac{c^{n+1}-c^{n}}{\triangle t}=-\alpha \cdot \kappa \cdot c^{n+1}-(1-\alpha )\cdot \kappa \cdot c^{n} $$ <br/><br/>
+调整为： <br/><br/>
+$$ c^{n+1}=\frac{1-(1- \alpha) \cdot \triangle t \cdot \kappa}{1+\alpha \cdot \triangle t \cdot \kappa}c^{n} $$ <br/><br/>
+当 $\alpha=1$ 时是隐式； <br/> <br/> 当 $\alpha=0$ 时是显示； <br/><br/> 当 $\alpha=0.5$ 时是半隐式。 <br/><br/><br/>
 
-
+## 4 测试程序
 ```python
 import numpy as np
 import math
@@ -104,8 +104,6 @@ plotframe=pd.DataFrame({'true':cture,'ex':cnmode1,'im':cnmode2,'a025':cna025,'a0
 ```python
 plotframe
 ```
-
-
 
 
 <div>
@@ -354,8 +352,6 @@ plotframe
   </tbody>
 </table>
 </div>
-
-
 
 
 ```python
