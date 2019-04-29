@@ -1,3 +1,5 @@
 ### 尝试中......
 ZhangYuncheng
-![image](https://github.com/dandanger-salmon/dandanger-salmon.github.io/blob/master/_posts/output_9_0.png)
+看我 看我 
+![image](img/xy.jpg)
+[我的主页](https://dandanger-salmon.github.io/)
