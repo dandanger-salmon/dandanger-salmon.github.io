@@ -364,5 +364,112 @@ plt.show()
 ```
 
 
+## 1 显示时间导数向前迭代 explicit scheme
+
+离散方程为:  <br/> 
+$$ \frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n} $$  <br/> 
+调整为: <br/> 
+$$ c^{n+1}=(1-\triangle t \cdot \kappa)c^{n} $$   <br/> 
+为了保证数值解稳定，需要满足条件： <br/> 
+$$ \triangle t < \frac{1}{\kappa} $$ <br/> 
+
+## 2 隐式时间导数向前迭代 implicit scheme
+
+离散方程为： <br/> 
+$$ \frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n+1} $$ <br/> 
+调整为： <br/> 
+$$ c^{n+1}=(1+\triangle t \cdot \kappa)c^{n} $$ <br/> 
+此时，数值解稳定。
+
+## 3 混合形式 hybrid scheme
+
+离散方程为： <br/> 
+$$ \frac{c^{n+1}-c^{n}}{\triangle t}=-\alpha \cdot \kappa \cdot c^{n+1}-(1-\alpha )\cdot \kappa \cdot c^{n} $$ <br/> 
+调整为： <br/> 
+$$ c^{n+1}=\frac{1-(1- \alpha) \cdot \triangle t \cdot \kappa}{1+\alpha \cdot \triangle t \cdot \kappa}c^{n} $$ <br/> 
+当 $\alpha=1$ 时是隐式； <br/> <br/> 当 $\alpha=0$ 时是显示； <br/><br/> 当 $\alpha=0.5$ 时是半隐式。 <br/><br/> 
+
+
+
+
+## 3 程序
+```python
+import numpy as np
+import math
+import pandas as pd
+import matplotlib.pyplot as plt
+czero = 100
+c=czero
+kappa = 0.0001
+dt = 3600
+
+facmod1 = 1.0-dt*kappa
+if facmod1<=0 :
+    print("STABITY CRITERION ALERT: REDUCE TIME STEP")
+    exit()   
+facmod2 = 1.0/(1.+dt*kappa)
+ntot = 24.0*3600./dt
+
+cnmode1=np.empty(int(ntot))
+cnmode1[:]=c
+
+cnmode2=np.empty(int(ntot))
+cnmode2[:]=c
+
+cture=np.empty(int(ntot))
+cture[:]=czero
+
+fac025=(1-(1-0.25)*dt*kappa)/(1+0.25*dt*kappa)
+cna025=np.empty(int(ntot))
+cna025[:]=c
+
+fac050=(1-(1-0.50)*dt*kappa)/(1+0.50*dt*kappa)
+cna050=np.empty(int(ntot))
+cna050[:]=c
+
+fac075=(1-(1-0.75)*dt*kappa)/(1+0.75*dt*kappa)
+cna075=np.empty(int(ntot))
+cna075[:]=c
+
+for i in (range(int(ntot)-1)):
+    cnmode1[(i+1)]=cnmode1[i]*facmod1
+    cnmode2[(i+1)]=cnmode2[i]*facmod2
+    cna025[(i+1)]=cna025[i]*fac025
+    cna050[(i+1)]=cna050[i]*fac050
+    cna075[(i+1)]=cna075[i]*fac075
+    cture[i+1]=czero*math.exp(-kappa*(i+1)*dt)
+plotframe=pd.DataFrame({'true':cture,'ex':cnmode1,'im':cnmode2,'a025':cna025,'a050':cna050,'a075':cna075})
+```
+计算步数<br>timestep | 真值<br>true | 显式<br>ex | 隐式<br>im | $\alpha=0.25$<br>a025 |$\alpha=0.50$ <br>a050 | $\alpha=0.75$<br>a075
+--|------|----|----|------|------|-----
+0 | 100.000000 | 100.000000 | 100.000000 | 100.000000 | 100.000000 | 100.000000
+1 | 69.767633 | 64.000000 | 73.529412 | 66.972477 | 69.491525 | 71.653543
+2 | 48.675226 | 40.960000 | 54.065744 | 44.853127 | 48.290721 | 51.342303
+3 | 33.959553 | 26.214400 | 39.754223 | 30.039250 | 33.557959 | 36.788579
+4 | 23.692776 | 16.777216 | 29.231047 | 20.118030 | 23.319937 | 26.360320
+5 | 16.529889 | 10.737418 | 21.493417 | 13.473543 | 16.205380 | 18.888104
+6 | 11.532512 | 6.871948 | 15.803983 | 9.023565 | 11.261366 | 13.533996
+7 | 8.045961 | 4.398047 | 11.620576 | 6.043305 | 7.825695 | 9.697587
+8 | 5.613476 | 2.814750 | 8.544541 | 4.047351 | 5.438195 | 6.948665
+9 | 3.916390 | 1.801440 | 6.282751 | 2.710611 | 3.779085 | 4.978965
+10 | 2.732372 | 1.152922 | 4.619670 | 1.815364 | 2.626143 | 3.567605
+11 | 1.906311 | 0.737870 | 3.396816 | 1.215794 | 1.824947 | 2.556315
+12 | 1.329988 | 0.472237 | 2.497659 | 0.814247 | 1.268184 | 1.831690
+13 | 0.927901 | 0.302231 | 1.836514 | 0.545322 | 0.881280 | 1.312471
+14 | 0.647375 | 0.193428 | 1.350378 | 0.365215 | 0.612415 | 0.940432
+15 | 0.451658 | 0.123794 | 0.992925 | 0.244594 | 0.425577 | 0.673853
+16 | 0.315111 | 0.079228 | 0.730092 | 0.163811 | 0.295740 | 0.482839
+17 | 0.219846 | 0.050706 | 0.536832 | 0.109708 | 0.205514 | 0.345972
+18 | 0.153381 | 0.032452 | 0.394730 | 0.073474 | 0.142815 | 0.247901
+19 | 0.107010 | 0.020769 | 0.290242 | 0.049207 | 0.099244 | 0.177630
+20 | 0.074659 | 0.013292 | 0.213413 | 0.032955 | 0.068966 | 0.127278
+21 | 0.052088 | 0.008507 | 0.156922 | 0.022071 | 0.047926 | 0.091199
+22 | 0.036340 | 0.005445 | 0.115384 | 0.014782 | 0.033304 | 0.065347
+23 | 0.025354 | 0.003484 | 0.084841 | 0.009900 | 0.023144 | 0.046824
+
+![表格绘图，取前10步](https://upload-images.jianshu.io/upload_images/11801911-eeb06534052bb047.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
+
 ![image](https://github.com/dandanger-salmon/dandanger-salmon.github.io/blob/master/_posts/output_9_0.png)
 
