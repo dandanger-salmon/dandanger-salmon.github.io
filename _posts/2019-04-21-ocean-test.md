@@ -362,5 +362,4 @@ plt.show()
 [戳我代码](https://github.com/dandanger-salmon/textbook---Ocean-Mdelling-for-Beginners/blob/master/ex01.ipynb)
 
 ![表格绘图，取前10步](https://upload-images.jianshu.io/upload_images/11801911-eeb06534052bb047.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
-
-
+![](img/output_9_0.png)
