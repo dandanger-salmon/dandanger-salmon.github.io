@@ -30,7 +30,7 @@ tags:
 ## 1 显示时间导数向前迭代 explicit scheme
 
 离散方程为:  <br/><br/>
-$$\frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n}$$ <br/><br/>
+$$\frac{c^{n+1}-c^{n}}{\triangle t}=-\kappa c^{n}$$ <br/><br/>
 调整为: <br/><br/>
 $$ c^{n+1}=(1-\triangle t \cdot \kappa)c^{n} $$   <br/><br/>
 为了保证数值解稳定，需要满足条件： <br/><br/>
@@ -39,7 +39,7 @@ $$ \triangle t < \frac{1}{\kappa} $$ <br/><br/>
 ## 2 隐式时间导数向前迭代 implicit scheme
 
 离散方程为： <br/><br/>
-$$ \frac{c^{n+1}-c^{n}}{\triangle t}=\kappa c^{n+1} $$ <br/><br/>
+$$ \frac{c^{n+1}-c^{n}}{\triangle t}=-\kappa c^{n+1} $$ <br/><br/>
 调整为： <br/><br/>
 $$ c^{n+1}=(1+\triangle t \cdot \kappa)c^{n} $$ <br/><br/>
 此时，数值解稳定。
