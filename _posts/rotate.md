@@ -1,0 +1,192 @@
+上次分享了一篇关于风向调整的文章，发现很多使用WARMS和WARR产品的小伙伴都没有注意这个问题。虽然也学习过这个代码，但是平时还是偷懒使用wrf_user_getvar直接获取。正好很多小伙伴问具体操作问题，借此梳理一下。水平有限，如有不足还请指正。
+
+## 旋转问题其实你早就会了
+抛开模式网格的问题，回到高中，你一定做过关于坐标系旋转的题目：
+
+>在原坐标系xoy中,  绕原点沿逆时针方向旋转theta度， 变成座标系 sot。设有某点p，在原坐标系中的坐标为 (x, y), 旋转后的新坐标为(s, t)。
+
+![旋转坐标问题](https://upload-images.jianshu.io/upload_images/11801911-0d68a4824aa89147.gif?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+```
+oa = y sin(theta)   (2.1)
+as = x cos(theta)   (2.2)
+综合(2.1)，(2.2) 2式
+s =  os = oa + as = x cos(theta) + y sin(theta) 
+t =  ot = ay – ab = y cos(theta) – x sin(theta)
+```
+
+现在，我们已经得到了一个普世的旋转公式，下面的关注点就集中到角度theta上。
+
+## 兰伯特投影
+如图所示，一个锥形投影展开后得到的是一个扇面（$ 2\pi k $）。我们规定单位经度圆锥面所张的平面角为k，k称为圆锥常数。所以在投影面上，160°E与150°E的差值是【10°*k】。
+
+![圆锥投影](https://upload-images.jianshu.io/upload_images/11801911-9431bd51d4a3f427.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+在wrf的namelist中，设置兰伯特投影需要重点关注【STDLON、TRUELAT1、（TRUELAT2）】这几个变量。其中STDLION所设置的经线是与模式网格Y轴平行的；TRUELAT1(TRUELAT2)是圆锥投影上的两个割线位置，地图放大系数是1。为此，我们获得了求解角度的两个重要关系。
+![兰伯特投影面上的计算网格](https://upload-images.jianshu.io/upload_images/11801911-495794796e7d45a3.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
+- 所有格点上的旋转经度差都以STDLON为基准，记diff=XLONG-STDLON。由计算网格转地球参考坐标过程中：在标准经线西边，是顺时针旋转，旋转角应该是负值；在标准经线东边，是逆时针旋转，旋转角应该是正值。采用diff = XLONG - stand_lon正好满足需求。
+- 在兰伯特割投影下（暂定为30°N、60°N），则k的公式如下（具体推导见沈桐立《数值天气预报》P60~65）
+$k = \frac{\ln \sin \Theta_{1}-\ln \sin \Theta_{2}}{\ln \tan \frac{\Theta _{1}}{2} -\ln \tan \frac{\Theta _{2}}{2} }$ 这里的角度为余纬。下面程序中的角度为纬度，做个三角函数变换就行了。
+
+至此，我们求得投影面上旋转角度theta=diff*k
+
+## 程序解读
+具体的实现只差一段代码，我们先来看一个简单的例子。稍后再介绍WRF模式中C网格下兰伯特投影风速旋转。
+
+#### 1 ARWPOST程序module_cal_uvmet.f90
+这个程序的目的很明确，即将计算格点的风速UV转换到地球投影上来。
+```
+    !! Diagnostics: U & V on earth coordinates
+
+    MODULE module_calc_uvmet
+
+    CONTAINS
+    SUBROUTINE calc_uvmet(SCRa, SCRb, cname, cdesc, cunits, i3dflag)
+
+    USE constants_module
+    USE module_model_basics
+
+    IMPLICIT NONE
+
+    !Arguments
+    real, allocatable, dimension(:,:,:)             :: SCRa, SCRb
+    character (len=128)                             :: cname, cdesc, cunits
+
+    !Local
+    integer                                         :: i, j, k
+    integer                                         :: i3dflag
+    real                                            :: cone
+    real, dimension(west_east_dim,south_north_dim)  :: diff, alpha
+
+    cname    = "uvmet"
+    cdesc    = "Rotated wind component"
+    cunits   = "m s-1"
+    
+    
+    IF ( map_proj .ge. 3 ) THEN     ! No need to rotate
+        IF ( i3dflag == 1 ) THEN  
+        SCRa = UUU
+        SCRb = VVV
+        ENDIF
+        IF ( i3dflag == 0 ) THEN
+        SCRa(:,:,1) = U10(:,:)
+        SCRb(:,:,1) = V10(:,:)
+        END IF
+        RETURN
+    END IF
+
+!求解圆锥割投影和圆锥切投影的圆锥常数
+    cone = 1.                                          !  PS
+    IF ( map_proj .eq. 1) THEN                         !  Lambert Conformal mapping
+        IF (ABS(truelat1-truelat2) .GT. 0.1) THEN
+        cone=(ALOG(COS(truelat1*RAD_PER_DEG))-            &
+                ALOG(COS(truelat2*RAD_PER_DEG))) /          &
+        (ALOG(TAN((90.-ABS(truelat1))*RAD_PER_DEG*0.5 ))- &
+            ALOG(TAN((90.-ABS(truelat2))*RAD_PER_DEG*0.5 )) )
+        ELSE
+        cone = SIN(ABS(truelat1)*RAD_PER_DEG )
+        ENDIF
+    END IF
+
+!求解经度差值，转换范围到（-180,180）
+    diff = XLONG - stand_lon
+    DO i = 1, west_east_dim
+    DO j = 1, south_north_dim
+        IF ( diff(i,j) .gt. 180. ) THEN
+        diff(i,j) = diff(i,j) - 360.
+        END IF
+        IF ( diff(i,j) .lt. -180. ) THEN
+        diff(i,j) = diff(i,j) + 360.
+        END IF
+    END DO
+    END DO
+
+!求解旋转角，北半球系数为1，南半球系数为-1
+    DO i = 1, west_east_dim
+    DO j = 1, south_north_dim
+        IF ( XLAT(i,j) .lt. 0. ) THEN
+        alpha(i,j) = - diff(i,j) * cone * RAD_PER_DEG
+        ELSE
+        alpha(i,j) = diff(i,j) * cone * RAD_PER_DEG
+        END IF
+    END DO
+    END DO
+
+    
+!使用旋转角公式旋转。
+    IF ( i3dflag == 1 ) THEN
+        DO k = 1,bottom_top_dim
+        SCRa(:,:,k) = VVV(:,:,k)*sin(alpha) + UUU(:,:,k)*cos(alpha)
+        SCRb(:,:,k) = VVV(:,:,k)*cos(alpha) - UUU(:,:,k)*sin(alpha)
+        END DO
+    ELSE
+        SCRa(:,:,1) = V10(:,:)*sin(alpha) + U10(:,:)*cos(alpha)
+        SCRb(:,:,1) = V10(:,:)*cos(alpha) - U10(:,:)*sin(alpha)
+    END IF
+
+    END SUBROUTINE calc_uvmet
+
+    END MODULE module_calc_uvmet
+
+```
+相对的，将地球坐标上的UVMET换到格点UV上，我们依然使用上述程序。只不过旋转的方向变了。所以角度需要乘以-1。
+#### 2 WPS程序rotate_winds_module.f90
+相比较ARWPOST中程序，WPS中的代码将这个问题描述的更加全面`/WPS/metgrid/src/rotate_winds_module.f90`。在ARWPOST中，风速应该是已经先被处理到了质量格点。在WRF中，由于程序是针对C网格设计，考虑了uv格点数目不同，位置不同，会涉及到格点的插值等一些问题以及边界上点处理的问题，但是核心内容依然如ARWPOST中所述。
+
+```
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+   ! Name: metmap_xform                                                           !
+   !                                                                              !
+   ! Purpose: Do the actual work of rotating winds for C grid.                    !
+   !          If idir= 1, rotate grid-relative winds to Earth-relative winds      !
+   !          If idir=-1, rotate Earth-relative winds to grid-relative winds      !
+   !                                                                              !
+   ! ASSUMPTIONS: 1) MEMORY ORDER IS XY.                                          !
+   !              2) U ARRAY HAS ONE MORE COLUMN THAN THE V ARRAY, AND V ARRAY    !
+   !                 HAS ONE MORE ROW THAN U ARRAY.                               !
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+...
+...
+...
+         ! Only rotate winds for Lambert conformal, polar stereographic, or Cassini  
+         !! idir=1时是有计算格点到地球参考，-1时是地球参考到计算格点
+         if ((proj_stack(current_nest_number)%code == PROJ_LC) .or. &
+             (proj_stack(current_nest_number)%code == PROJ_PS) .or. &
+             (proj_stack(current_nest_number)%code == PROJ_CASSINI)) then
+            call mprintf((idir ==  1),LOGFILE,'Rotating map winds to earth winds.')
+            call mprintf((idir == -1),LOGFILE,'Rotating earth winds to grid winds')
+...
+...
+...
+            ! Rotate U field 
+            !!diff即经度差,xlon_u(i,j)为C网格上U格点的经度，不同于M格点。
+            !!proj_stack(current_nest_number)%stdlon为当前嵌套网格的标准经度。
+            !!proj_stack(current_nest_number)%cone即为圆锥系数，具体和ARWPOST中程序相似。
+            !!proj_stack(current_nest_number)%hemi为南北半球系数，北半球为1，南半球为-1。
+                  diff = idir * (xlon_u(i,j) - proj_stack(current_nest_number)%stdlon)
+                  if (diff > 180.) then
+                     diff = diff - 360.
+                  else if (diff < -180.) then
+                     diff = diff + 360.
+                  end if
+
+                  ! Calculate the rotation angle, alpha, in radians 
+                  if (proj_stack(current_nest_number)%code == PROJ_LC) then
+                     alpha = diff * proj_stack(current_nest_number)%cone * rad_per_deg * proj_stack(current_nest_number)%hemi 
+...
+...
+...
+                  ! On C grid, take U_ij, and get V value at the same lat/lon  v为四点权重插值
+                  !   by averaging the four surrounding V points
+                        u_new(i,j) = cos(alpha)*u_map + sin(alpha)*v_map/v_weight                 
+...
+...
+            ! Rotate V field 类似
+                        v_new(i,j) = -sin(alpha)*u_map/u_weight + cos(alpha)*v_map
+...
+...
+... 
+   end subroutine metmap_xform
+```
+将WPS中的idir接入ARWPOST中，就可以完善整个旋转问题。
