@@ -24,8 +24,6 @@ tags:
     </script>
 </head>
 
-<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-<script type="text/x-mathjax-config">MathJax.Hub.Config({ tex2jax: {inlineMath: [['$', '$']]}, messageStyle: "none" });</script>
 # 第二章 导数的有限差分近似
 - 整理时间：2022年01月14日
 - 整理人：张赟程
